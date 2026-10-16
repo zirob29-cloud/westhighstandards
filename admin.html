@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — West High Standards</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Admin — Email & Domain Setup</h1>
+    <p>This admin page helps you test transactional email sending and shows the steps to verify your sending domain.</p>
+
+    <h3>Send a test email</h3>
+    <p>Enter recipient (one email) and message. The serverless function uses the SENDGRID_API_KEY environment variable on the host (set this in Vercel).</p>
+    <form id="testForm">
+      <label>Recipient: <input type="email" id="to" required></label><br><br>
+      <label>Subject: <input id="subject" value="Test message from West High Standards"></label><br><br>
+      <label>Message:<br><textarea id="message" rows="6" cols="60">This is a test email from West High Standards.</textarea></label><br><br>
+      <button type="submit">Send test email</button>
+    </form>
+
+    <pre id="result" style="background:#f7f7f7;padding:12px;margin-top:12px;display:none;"></pre>
+
+    <h3>Domain verification steps (overview)</h3>
+    <ol>
+      <li>Buy westhighstandards.com at a registrar (Namecheap or Cloudflare)</li>
+      <li>Add the domain in Vercel (or your host). Vercel will provide DNS records.</li>
+      <li>If using SendGrid: add the TXT/CNAME records SendGrid shows to verify DKIM/SPF.</li>
+      <li>Set SENDGRID_API_KEY as an environment variable in Vercel and verify sending domain in SendGrid.</li>
+    </ol>
+
+    <p><strong>Security note:</strong> This page is not protected. Deploy behind Vercel Protected Routes or add a password to restrict access.</p>
+  </div>
+
+  <script>
+    document.getElementById('testForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const to = document.getElementById('to').value;
+      const subject = document.getElementById('subject').value;
+      const message = document.getElementById('message').value;
+      const res = await fetch('/api/send-email', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({to, subject, text: message})
+      });
+      const out = document.getElementById('result');
+      out.style.display = 'block';
+      out.textContent = 'Sending...';
+      const json = await res.json();
+      out.textContent = JSON.stringify(json, null, 2);
+    });
+  </script>
+</body>
+</html>
